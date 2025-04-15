@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import heapq
 import requests
 from typing import Dict, List, Tuple
@@ -83,3 +84,123 @@ def main():
 
 if __name__ == "__main__":
     main()
+=======
+import os
+import json
+import csv
+import requests
+from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
+
+
+app = Flask(__name__, static_folder="static", static_url_path="")
+CORS(app)
+
+
+data_directory = 'data/'
+
+
+API_KEY = "AIzaSyDe4ZTpmEQSATWA6gawvxkQ6_ah9q3pAs8"  
+API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
+
+
+def ask_gemini(message):
+    headers = {"Content-Type": "application/json"}
+    payload = {
+        "contents": [
+            {
+                "role": "user",
+                "parts": [{"text": message}]
+            }
+        ]
+    }
+
+    response = requests.post(API_URL, headers=headers, json=payload)
+
+    if response.status_code == 200:
+        data = response.json()
+        try:
+            return data['candidates'][0]['content']['parts'][0]['text']
+        except (KeyError, IndexError):
+            return "❗ Error from AI."
+    else:
+        return f"❌ Error: {response.status_code} - {response.text}"
+
+
+def read_txt(file_path):
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            return file.read()
+    except Exception as e:
+        return f"❗ Error when reading file {file_path}: {str(e)}"
+
+def read_json(file_path):
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            return json.load(file)
+    except Exception as e:
+        return f"❗ Error when reading file {file_path}: {str(e)}"
+
+def read_csv(file_path):
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            reader = csv.reader(file)
+            data = "\n".join([", ".join(row) for row in reader])
+            return data
+    except Exception as e:
+        return f"❗ Error when reading file  {file_path}: {str(e)}"
+
+def process_data_files(directory):
+    file_data = {}
+    for file_name in os.listdir(directory):
+        file_path = os.path.join(directory, file_name)
+        if os.path.isfile(file_path):
+            ext = file_name.split('.')[-1].lower()
+            if ext == 'txt':
+                content = read_txt(file_path)
+            elif ext == 'json':
+                content = read_json(file_path)
+            elif ext == 'csv':
+                content = read_csv(file_path)
+            else:
+                content = f"❗ Error when reading file  {ext}."
+            file_data[file_name] = content
+    return file_data
+
+
+file_data = process_data_files(data_directory)
+
+@app.route("/api/files")
+def get_files():
+    return jsonify(list(file_data.keys()))
+
+@app.route("/api/file-content")
+def get_file_content():
+    file = request.args.get('file')
+    content = file_data.get(file, "")
+    if isinstance(content, str):
+        return jsonify({"content": content[:1000]}) 
+    else:
+        return jsonify({"content": json.dumps(content, ensure_ascii=False)[:1000]})
+
+@app.route("/api/ask", methods=["POST"])
+def ask_question():
+    data_input = request.get_json()
+    file = data_input.get("file")
+    question = data_input.get("question")
+    content = file_data.get(file, "")
+    if isinstance(content, dict):
+        content = json.dumps(content, ensure_ascii=False)
+    prompt = f"{content}\nQuestion: {question}"
+    response = ask_gemini(prompt)
+    return jsonify({"answer": response})
+
+
+@app.route("/")
+def serve_index():
+    return send_from_directory("static", "index.html")
+
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)
+>>>>>>> e5f1dedf (Initial commit: deploy bank_proj to DoAnCuoiKy repo)
