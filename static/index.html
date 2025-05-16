@@ -1,0 +1,632 @@
+<!-- 
+
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Chatbot Ngân hàng</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(to bottom, #E6F0FA, #FFFFFF);
+      position: relative;
+    }
+    .background-image {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('https://images.unsplash.com/photo-1501167788043-96c43e1433bc?auto=format&fit=crop&q=80');
+      background-size: cover;
+      background-position: center;
+      opacity: 0.1;
+      z-index: -1;
+    }
+    .card-container {
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease;
+    }
+    .card-container:hover {
+      transform: translateY(-2px);
+    }
+    .input-field {
+      border: 1px solid #D1D5DB;
+      border-radius: 6px;
+      padding: 12px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .input-field:focus {
+      border-color: #003087;
+      box-shadow: 0 0 6px rgba(0, 48, 135, 0.2);
+      outline: none;
+    }
+    .btn-primary {
+      background-color: #003087;
+      color: white;
+      border-radius: 6px;
+      padding: 12px;
+      font-weight: 500;
+      transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+    .btn-primary:hover {
+      background-color: #00205B;
+      transform: translateY(-1px);
+    }
+    .response-container {
+      max-height: 300px;
+      overflow-y: auto;
+      background: #F5F5F5;
+      border: 1px solid #D1D5DB;
+      border-radius: 6px;
+      padding: 16px;
+      white-space: pre-wrap;
+    }
+    .response-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    .response-container::-webkit-scrollbar-thumb {
+      background: #003087;
+      border-radius: 3px;
+    }
+    .btn-feedback {
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-weight: 500;
+      transition: background-color 0.2s ease;
+    }
+    .btn-like:hover {
+      background-color: #059669;
+    }
+    .btn-dislike:hover {
+      background-color: #DC2626;
+    }
+    .bank-logo {
+      max-width: 150px;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-6">
+  <div class="background-image"></div>
+  <div class="w-full max-w-4xl bg-white card-container p-8">
+    <img src="/static/bank-logo.png" alt="Bank Logo" class="bank-logo mx-auto">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+      <i class="fas fa-robot mr-2 text-[#003087]"></i> AI Chatbot Ngân hàng
+    </h2>
+    <div class="mb-6">
+      <label for="fileSelect" class="block text-sm font-medium text-gray-700 mb-2">Chọn tệp dữ liệu:</label>
+      <select id="fileSelect" onchange="loadFileContent()" 
+              class="w-full input-field">
+        <option value="" disabled selected>Chọn một tệp</option>
+      </select>
+    </div>
+    <div class="mb-6">
+      <a href="/stats" class="text-[#003087] hover:underline font-medium">
+        <i class="fas fa-chart-bar mr-1"></i> Xem thống kê phản hồi
+      </a>
+    </div>
+    <div class="mb-6">
+      <label for="fileContent" class="block text-sm font-medium text-gray-700 mb-2">Nội dung tệp (xem trước):</label>
+      <textarea id="fileContent" rows="6" readonly 
+                class="w-full input-field bg-gray-50 resize-none"></textarea>
+    </div>
+    <div class="mb-6">
+      <label for="question" class="block text-sm font-medium text-gray-700 mb-2">Câu hỏi:</label>
+      <input type="text" id="question" placeholder="Nhập câu hỏi của bạn..." 
+             class="w-full input-field" />
+    </div>
+    <button onclick="askGemini()" 
+            class="w-full btn-primary flex items-center justify-center">
+      <span id="buttonText">Gửi câu hỏi</span>
+      <span id="spinner" class="hidden ml-2"></span>
+    </button>
+    <div class="mt-6">
+      <label for="aiResponse" class="block text-sm font-medium text-gray-700 mb-2">Phản hồi từ Chatbot:</label>
+      <div id="aiResponse" class="response-container">
+        <i class="fas fa-info-circle mr-1"></i> Phản hồi sẽ hiển thị tại đây.
+      </div>
+      <div id="feedbackButtons" class="mt-4 flex justify-end space-x-2 hidden">
+        <button onclick="submitFeedback('like')" 
+                class="btn-feedback bg-green-500 text-white btn-like">
+          <i class="fas fa-thumbs-up mr-1"></i> Thích
+        </button>
+        <button onclick="submitFeedback('dislike')" 
+                class="btn-feedback bg-red-500 text-white btn-dislike">
+          <i class="fas fa-thumbs-down mr-1"></i> Không thích
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const spinner = new Spinner({
+      lines: 10,
+      length: 8,
+      width: 4,
+      radius: 8,
+      color: '#ffffff'
+    });
+
+    async function loadFiles() {
+      try {
+        const response = await fetch("/api/files");
+        const files = await response.json();
+        const select = document.getElementById("fileSelect");
+
+        files.forEach(file => {
+          const option = document.createElement("option");
+          option.value = file;
+          option.textContent = file;
+          select.appendChild(option);
+        });
+
+        if (files.length > 0) {
+          select.value = files[0];
+          await loadFileContent();
+        }
+      } catch (error) {
+        console.error("Error loading files:", error);
+        document.getElementById("aiResponse").textContent = "❗ Lỗi khi tải danh sách tệp.";
+      }
+    }
+
+    async function loadFileContent() {
+      const file = document.getElementById("fileSelect").value;
+      if (!file) return;
+
+      try {
+        const res = await fetch(`/api/file-content?file=${encodeURIComponent(file)}`);
+        const data = await res.json();
+        document.getElementById("fileContent").value = data.content || "Không có nội dung.";
+      } catch (error) {
+        console.error("Error loading file content:", error);
+        document.getElementById("fileContent").value = "❗ Lỗi khi tải nội dung tệp.";
+      }
+    }
+
+    async function askGemini() {
+      const file = document.getElementById("fileSelect").value;
+      const question = document.getElementById("question").value.trim();
+      const buttonText = document.getElementById("buttonText");
+      const spinnerElement = document.getElementById("spinner");
+      const responseDiv = document.getElementById("aiResponse");
+      const feedbackButtons = document.getElementById("feedbackButtons");
+
+      if (!file || !question) {
+        responseDiv.textContent = "❗ Vui lòng chọn tệp và nhập câu hỏi.";
+        return;
+      }
+
+      buttonText.textContent = "Đang xử lý...";
+      spinnerElement.classList.remove("hidden");
+      spinner.spin(spinnerElement);
+
+      try {
+        const res = await fetch("/api/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ file, question })
+        });
+
+        const data = await res.json();
+        responseDiv.textContent = data.answer || "❗ Không nhận được phản hồi từ AI.";
+        feedbackButtons.classList.remove("hidden");
+      } catch (error) {
+        console.error("Error asking Gemini:", error);
+        responseDiv.textContent = "❗ Lỗi khi gửi câu hỏi đến AI.";
+        feedbackButtons.classList.add("hidden");
+      } finally {
+        buttonText.textContent = "Gửi câu hỏi";
+        spinnerElement.classList.add("hidden");
+        spinner.stop();
+      }
+    }
+
+    async function submitFeedback(feedback) {
+      const file = document.getElementById("fileSelect").value;
+      const question = document.getElementById("question").value.trim();
+      const answer = document.getElementById("aiResponse").textContent;
+      const feedbackButtons = document.getElementById("feedbackButtons");
+
+      try {
+        const res = await fetch("/api/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ file, question, answer, feedback })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          alert(`Đã gửi phản hồi: ${feedback === 'like' ? 'Thích' : 'Không thích'}`);
+          feedbackButtons.classList.add("hidden");
+        } else {
+          alert("Lỗi khi gửi phản hồi.");
+        }
+      } catch (error) {
+        console.error("Error submitting feedback:", error);
+        alert("Lỗi khi gửi phản hồi.");
+      }
+    }
+
+    window.onload = loadFiles;
+  </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot Ngân hàng</title>
+    <base href="/">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js"></script>
+    <style>
+        body {
+            padding-top: 3.5rem;
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: #fff;
+            position: relative;
+        }
+        .bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&q=80') no-repeat center center/cover;
+            opacity: 0.2;
+            z-index: -1;
+        }
+        .navbar {
+            background: linear-gradient(90deg, #1e3c72, #6b7280);
+        }
+        .navbar-brand, .nav-link {
+            color: #ffd700 !important;
+        }
+        .jumbotron {
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 1s ease-in;
+        }
+        .card-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.8s ease-out;
+            color: #333;
+        }
+        .input-field {
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            padding: 12px;
+            transition: all 0.3s ease;
+            background: #f1f5f9;
+        }
+        .input-field:focus {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
+            outline: none;
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #2563eb, #7c3aed);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.5);
+        }
+        .response-container {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #f1f5f9;
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            padding: 16px;
+            white-space: pre-wrap;
+            color: #1e293b;
+        }
+        .response-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .response-container::-webkit-scrollbar-thumb {
+            background: #8b5cf6;
+            border-radius: 4px;
+        }
+        .btn-feedback {
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        .btn-like {
+            background: #10b981;
+            color: white;
+        }
+        .btn-like:hover {
+            background: #059669;
+        }
+        .btn-dislike {
+            background: #ef4444;
+            color: white;
+        }
+        .btn-dislike:hover {
+            background: #dc2626;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .icon-decor {
+            color: #3b82f6;
+            margin-right: 8px;
+        }
+        label {
+            color: #333;
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        .text-warning {
+            color: #f59e0b !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-overlay"></div>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top">
+        <a class="navbar-brand" href="#"><i class="fas fa-university mr-2"></i>Open Financial Bank</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
+            aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#"><i class="fas fa-home mr-1"></i>Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#"><i class="fas fa-info-circle mr-1"></i>About Us</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false"><i class="fas fa-concierge-bell mr-1"></i>Services</a>
+                    <div class="dropdown-menu" aria-labelledby="dropdown01">
+                        <a class="dropdown-item" href="#">Banking</a>
+                        <a class="dropdown-item" href="#">Investment</a>
+                        <a class="dropdown-item" href="#">Home Loan</a>
+                    </div>
+                </li>
+            </ul>
+            <form class="form-inline my-2 my-lg-0">
+                <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-warning my-2 my-sm-0" type="submit"><i class="fas fa-search"></i></button>
+            </form>
+            <ul class="navbar-nav navbar-right">
+                <li class="nav-item">
+                    <a class="nav-link" href="/login"><i class="fas fa-sign-in-alt mr-1"></i>Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#"><i class="fas fa-user-plus mr-1"></i>Register</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <main role="main">
+        <div class="jumbotron">
+            <div class="container">
+                <h1 class="display-3"><i class="fas fa-robot icon-decor"></i>AI Chatbot Ngân hàng</h1>
+                <p>Trò chuyện với chatbot thông minh của chúng tôi để nhận hỗ trợ về các dịch vụ ngân hàng!</p>
+                <p><a class="btn btn-primary btn-lg" href="#" role="button"><i class="fas fa-info-circle mr-2"></i>Tìm hiểu thêm</a></p>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card-container">
+                        <h2><i class="fas fa-robot icon-decor"></i>AI Chatbot Ngân hàng</h2>
+                        <!-- <div class="mb-4">
+                            <label for="fileSelect"><i class="fas fa-file-alt icon-decor"></i>Chọn tệp dữ liệu:</label>
+                            <select id="fileSelect" onchange="loadFileContent()" class="form-control input-field">
+                                <option value="" disabled selected>Chọn một tệp</option>
+                            </select>
+                        </div> -->
+                                        <div style="margin-bottom: 1rem; position: relative; z-index: 10;">
+                    <label for="fileSelect" style="display: block; font-weight: 500; margin-bottom: 0.5rem;">
+                        <i class="fas fa-file-alt" style="margin-right: 5px;"></i>Chọn tệp dữ liệu:
+                    </label>
+                    <select id="fileSelect" onchange="loadFileContent()" 
+                            style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px; background-color: #fff; position: relative; z-index: 11;">
+                        <option value="" disabled selected>Chọn một tệp</option>
+                    </select>
+                </div>
+
+                        <div class="mb-4">
+                            <a href="/stats" class="text-warning"><i class="fas fa-chart-bar icon-decor"></i>Xem thống kê phản hồi</a>
+                        </div>
+                        <div class="mb-4">
+                            <label for="fileContent"><i class="fas fa-file-lines icon-decor"></i>Nội dung tệp (xem trước):</label>
+                            <textarea id="fileContent" rows="6" readonly class="form-control input-field bg-light" style="resize: none;"></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label for="question"><i class="fas fa-question-circle icon-decor"></i>Câu hỏi:</label>
+                            <input type="text" id="question" placeholder="Nhập câu hỏi của bạn..." class="form-control input-field" />
+                        </div>
+                        <button onclick="askGemini()" class="btn btn-primary btn-block d-flex align-items-center justify-content-center">
+                            <span id="buttonText">Gửi câu hỏi</span>
+                            <span id="spinner" class="d-none ml-2"></span>
+                        </button>
+                        <div class="mt-4">
+                            <label for="aiResponse"><i class="fas fa-comment-dots icon-decor"></i>Phản hồi từ Chatbot:</label>
+                            <div id="aiResponse" class="response-container">
+                                <i class="fas fa-info-circle mr-1"></i> Phản hồi sẽ hiển thị tại đây.
+                            </div>
+                            <div id="feedbackButtons" class="mt-4 d-flex justify-content-end d-none">
+                                <button onclick="submitFeedback('like')" class="btn btn-feedback btn-like mr-2">
+                                    <i class="fas fa-thumbs-up mr-1"></i> Thích
+                                </button>
+                                <button onclick="submitFeedback('dislike')" class="btn btn-feedback btn-dislike">
+                                    <i class="fas fa-thumbs-down mr-1"></i> Không thích
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr class="bg-light">
+        </div>
+    </main>
+
+    <footer class="container text-light">
+        <p>© Open Financial Bank 2025</p>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+    <script>
+        const spinner = new Spinner({
+            lines: 10,
+            length: 8,
+            width: 4,
+            radius: 8,
+            color: '#ffffff'
+        });
+
+        async function loadFiles() {
+            try {
+                const response = await fetch("/api/files");
+                const files = await response.json();
+                const select = document.getElementById("fileSelect");
+
+                files.forEach(file => {
+                    const option = document.createElement("option");
+                    option.value = file;
+                    option.textContent = file;
+                    select.appendChild(option);
+                });
+
+                if (files.length > 0) {
+                    select.value = files[0];
+                    await loadFileContent();
+                }
+            } catch (error) {
+                console.error("Error loading files:", error);
+                document.getElementById("aiResponse").textContent = "❗ Lỗi khi tải danh sách tệp.";
+            }
+        }
+
+        async function loadFileContent() {
+            const file = document.getElementById("fileSelect").value;
+            if (!file) return;
+
+            try {
+                const res = await fetch(`/api/file-content?file=${encodeURIComponent(file)}`);
+                const data = await res.json();
+                document.getElementById("fileContent").value = data.content || "Không có nội dung.";
+            } catch (error) {
+                console.error("Error loading file content:", error);
+                document.getElementById("fileContent").value = "❗ Lỗi khi tải nội dung tệp.";
+            }
+        }
+
+        async function askGemini() {
+            const file = document.getElementById("fileSelect").value;
+            const question = document.getElementById("question").value.trim();
+            const buttonText = document.getElementById("buttonText");
+            const spinnerElement = document.getElementById("spinner");
+            const responseDiv = document.getElementById("aiResponse");
+            const feedbackButtons = document.getElementById("feedbackButtons");
+
+            if (!file || !question) {
+                responseDiv.textContent = "❗ Vui lòng chọn tệp và nhập câu hỏi.";
+                return;
+            }
+
+            buttonText.textContent = "Đang xử lý...";
+            spinnerElement.classList.remove("d-none");
+            spinner.spin(spinnerElement);
+
+            try {
+                const res = await fetch("/api/ask", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ file, question })
+                });
+
+                const data = await res.json();
+                responseDiv.textContent = data.answer || "❗ Không nhận được phản hồi từ AI.";
+                feedbackButtons.classList.remove("d-none");
+            } catch (error) {
+                console.error("Error asking Gemini:", error);
+                responseDiv.textContent = "❗ Lỗi khi gửi câu hỏi đến AI.";
+                feedbackButtons.classList.add("d-none");
+            } finally {
+                buttonText.textContent = "Gửi câu hỏi";
+                spinnerElement.classList.add("d-none");
+                spinner.stop();
+            }
+        }
+
+        async function submitFeedback(feedback) {
+            const file = document.getElementById("fileSelect").value;
+            const question = document.getElementById("question").value.trim();
+            const answer = document.getElementById("aiResponse").textContent;
+            const feedbackButtons = document.getElementById("feedbackButtons");
+
+            try {
+                const res = await fetch("/api/feedback", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ file, question, answer, feedback })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    alert(`Đã gửi phản hồi: ${feedback === 'like' ? 'Thích' : 'Không thích'}`);
+                    feedbackButtons.classList.add("d-none");
+                } else {
+                    alert("Lỗi khi gửi phản hồi.");
+                }
+            } catch (error) {
+                console.error("Error submitting feedback:", error);
+                alert("Lỗi khi gửi phản hồi.");
+            }
+        }
+
+        window.onload = loadFiles;
+    </script>
+</body>
+</html>

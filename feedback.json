@@ -1,0 +1,18 @@
+[
+  {
+    "username": "user1",
+    "file": "VNIDEX.csv",
+    "question": "Hi",
+    "answer": "Chào bạn! Bạn cần tôi giúp gì với dữ liệu này không? Ví dụ:\n\n*   **Tính toán:** Tính tổng, trung bình, tăng trưởng, tỷ lệ,... cho các khoản mục tài sản hoặc nợ phải trả.\n*   **Phân tích:** So sánh các chỉ số giữa các năm, tìm xu hướng, nhận diện điểm nổi bật,...\n*   **Tìm kiếm:** Tìm giá trị cụ thể của một khoản mục trong một năm nhất định.\n*   **Trực quan hóa:** Tạo biểu đồ để dễ dàng so sánh và nhận diện xu hướng.\n\nHãy cho tôi biết yêu cầu cụ thể của bạn nhé!\n",
+    "feedback": "like",
+    "timestamp": null
+  },
+  {
+    "username": "admin",
+    "file": "Agribank.txt",
+    "question": "tóm tắt file",
+    "answer": "Bài viết cung cấp thông tin chi tiết về hình thức vay trả góp tại ngân hàng Agribank, một trong những ngân hàng nhà nước uy tín hàng đầu Việt Nam. Nội dung chính bao gồm:\n\n*   **Vay trả góp Agribank là gì:** Giải thích khái niệm vay trả góp và giới thiệu về uy tín của Agribank.\n*   **Đặc điểm của gói vay trả góp:** Nêu các đặc điểm như mục đích vay, hình thức trả nợ, lãi suất phạt trả chậm, mức hỗ trợ vay và thời gian vay.\n*   **Các gói vay trả góp:** Liệt kê và mô tả 4 gói vay trả góp chính: vay tín dụng tiêu dùng trả góp, vay hạn mức quy mô nhỏ trả góp, vay phục vụ buôn bán trả góp, và vay ưu đãi lãi suất trả góp.\n*   **Tiêu chuẩn vay trả góp:** Các yêu cầu về thu nhập, hợp đồng lao động, hình thức nhận lương, tài sản đảm bảo, độ tuổi, địa chỉ thường trú/tạm trú và thời gian làm việc.\n*   **Giấy tờ cần thiết:** Danh sách các loại giấy tờ cần chuẩn bị để vay trả góp.\n*   **Thủ tục vay trả góp:** Mô tả quy trình 3 bước vay trả góp tại Agribank: tư vấn và chuẩn bị hồ sơ, nộp và xét duyệt hồ sơ, giải ngân.\n\nMục đích của bài viết là cung cấp thông tin hữu ích cho những ai quan tâm đến việc vay trả góp tại ngân hàng Agribank, giúp họ hiểu rõ về các gói vay, điều kiện, thủ tục và chuẩn bị tốt nhất cho quá trình vay vốn.\n",
+    "feedback": "like",
+    "timestamp": null
+  }
+]

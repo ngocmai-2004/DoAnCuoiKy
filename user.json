@@ -1,0 +1,12 @@
+[
+    {
+        "username": "admin",
+        "password": "admin123",
+        "permissions": ["test.txt", "Agribank.txt", "VNIDEX.csv"]
+    },
+    {
+        "username": "user1",
+        "password": "user123",
+        "permissions": ["VNIDEX.csv"]
+    }
+]
